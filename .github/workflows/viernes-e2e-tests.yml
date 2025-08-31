@@ -45,29 +45,43 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+      - name: Cache Cypress binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            cypress-${{ runner.os }}-
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            node-${{ runner.os }}-
+
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit
 
       - name: Wait for deployment (development)
         run: |
-          echo "Waiting for development deployment to be ready..."
-          sleep 60
+          chmod +x .github/workflows/check-deployment.sh
+          .github/workflows/check-deployment.sh https://viernes-dev.bananascript.io
 
       - name: Run development tests
         run: npm run viernes-development
         continue-on-error: true
 
-      - name: Combine mocha reports
-        run: npm run mocha.combine-reports
+      - name: Generate reports (parallel)
         if: always()
-
-      - name: Generate mocha report
-        run: npm run mocha.generate-report
-        if: always()
-
-      - name: Generate Allure report
-        run: npm run allure.report
-        if: always()
+        run: |
+          # Run report generation in parallel for speed
+          npm run mocha.combine-reports &
+          wait
+          npm run mocha.generate-report &
+          npm run allure.report &
+          wait
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -107,29 +121,43 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+      - name: Cache Cypress binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            cypress-${{ runner.os }}-
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: node-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            node-${{ runner.os }}-
+
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit
 
       - name: Wait for deployment (production)
         run: |
-          echo "Waiting for production deployment to be ready..."
-          sleep 120
+          chmod +x .github/workflows/check-deployment.sh
+          .github/workflows/check-deployment.sh https://viernes.bananascript.io
 
       - name: Run production tests
         run: npm run viernes-production
         continue-on-error: true
 
-      - name: Combine mocha reports
-        run: npm run mocha.combine-reports
+      - name: Generate reports (parallel)
         if: always()
-
-      - name: Generate mocha report
-        run: npm run mocha.generate-report
-        if: always()
-
-      - name: Generate Allure report
-        run: npm run allure.report
-        if: always()
+        run: |
+          # Run report generation in parallel for speed
+          npm run mocha.combine-reports &
+          wait
+          npm run mocha.generate-report &
+          npm run allure.report &
+          wait
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
