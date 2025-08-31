@@ -28,8 +28,6 @@ jobs:
       options: --user 1001
     permissions:
       contents: read
-      pages: write
-      id-token: write
     
     steps:
       - name: Checkout code
@@ -40,6 +38,12 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+
+      - name: Set up Java (for Allure)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
 
       - name: Install dependencies
         run: npm ci
@@ -75,14 +79,8 @@ jobs:
             allure-report/
           retention-days: 30
 
-      - name: Deploy reports to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        if: always()
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./cypress/reports/mochareports
-          destination_dir: development
-          cname: your-domain.com # Optional: replace with your domain
+      # GitHub Pages deployment disabled due to permission issues
+      # Enable by configuring repository permissions if needed
 
   test-production:
     if: github.event.action == 'viernes-front-release-created' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
@@ -92,8 +90,6 @@ jobs:
       options: --user 1001
     permissions:
       contents: read
-      pages: write
-      id-token: write
     
     steps:
       - name: Checkout code
@@ -104,6 +100,12 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+
+      - name: Set up Java (for Allure)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
 
       - name: Install dependencies
         run: npm ci
@@ -139,14 +141,8 @@ jobs:
             allure-report/
           retention-days: 30
 
-      - name: Deploy reports to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        if: always()
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./cypress/reports/mochareports
-          destination_dir: production
-          cname: your-domain.com # Optional: replace with your domain
+      # GitHub Pages deployment disabled due to permission issues
+      # Enable by configuring repository permissions if needed
 
       - name: Notify on failure
         if: failure()
