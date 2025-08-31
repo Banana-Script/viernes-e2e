@@ -1,0 +1,157 @@
+name: Viernes E2E Tests
+
+on:
+  # Trigger from viernes-front repository
+  repository_dispatch:
+    types: 
+      - viernes-front-main-updated
+      - viernes-front-release-created
+  
+  # Manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - production
+
+jobs:
+  test-development:
+    if: github.event.action == 'viernes-front-main-updated' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'development')
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:latest
+      options: --user 1001
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait for deployment (development)
+        run: |
+          echo "Waiting for development deployment to be ready..."
+          sleep 60
+
+      - name: Run development tests
+        run: npm run viernes-development
+        continue-on-error: true
+
+      - name: Combine mocha reports
+        run: npm run mocha.combine-reports
+        if: always()
+
+      - name: Generate mocha report
+        run: npm run mocha.generate-report
+        if: always()
+
+      - name: Generate Allure report
+        run: npm run allure.report
+        if: always()
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: development-test-results
+          path: |
+            cypress/reports/
+            allure-report/
+          retention-days: 30
+
+      - name: Deploy reports to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./cypress/reports/mochareports
+          destination_dir: development
+          cname: your-domain.com # Optional: replace with your domain
+
+  test-production:
+    if: github.event.action == 'viernes-front-release-created' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:latest
+      options: --user 1001
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait for deployment (production)
+        run: |
+          echo "Waiting for production deployment to be ready..."
+          sleep 120
+
+      - name: Run production tests
+        run: npm run viernes-production
+        continue-on-error: true
+
+      - name: Combine mocha reports
+        run: npm run mocha.combine-reports
+        if: always()
+
+      - name: Generate mocha report
+        run: npm run mocha.generate-report
+        if: always()
+
+      - name: Generate Allure report
+        run: npm run allure.report
+        if: always()
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-test-results
+          path: |
+            cypress/reports/
+            allure-report/
+          retention-days: 30
+
+      - name: Deploy reports to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./cypress/reports/mochareports
+          destination_dir: production
+          cname: your-domain.com # Optional: replace with your domain
+
+      - name: Notify on failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#alerts' # Optional: replace with your Slack channel
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }} # Optional: add Slack webhook
