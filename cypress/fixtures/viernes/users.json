@@ -1,0 +1,16 @@
+{
+  "development": {
+    "primary": {
+      "name": "dev_user",
+      "email": "test@viernes.dev",
+      "password": "dev_pass"
+    }
+  },
+  "production": {
+    "primary": {
+      "name": "prod_user",
+      "email": "test@viernes.prod",
+      "password": "prod_pass"
+    }
+  }
+}

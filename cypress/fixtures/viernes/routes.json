@@ -1,0 +1,11 @@
+{
+  "commonPaths": {},
+  "envs": {
+    "development": {
+      "baseUrl": "https://viernes-dev.bananascript.io"
+    },
+    "production": {
+      "baseUrl": "https://viernes.bananascript.io"
+    }
+  }
+}

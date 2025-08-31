@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Cypress
+cypress/reports/
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+
+# Allure
+allure-results/
+allure-report/
+
+# Test results
+*.xml
+*.json.tmp
+
+# IDE files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Local user data
+cypress/fixtures/*/users.local.json
+users.local.json
+
+# Cache directories
+.cache/
+.npm/
+.eslintcache
+
+# Build outputs
+dist/
+build/
+
+# Temporary files
+tmp/
+temp/

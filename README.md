@@ -64,12 +64,14 @@ cypress/
 El proyecto incluye reportes con Mochawesome y Allure:
 
 ### Mochawesome
+
 ```bash
 npm run mocha.combine-reports
 npm run mocha.generate-report
 ```
 
 ### Allure
+
 ```bash
 npm run allure.report
 npm run allure.start
