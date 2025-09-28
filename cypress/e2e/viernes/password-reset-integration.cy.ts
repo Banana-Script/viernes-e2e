@@ -17,10 +17,7 @@ describe('Viernes - Password Reset Integration Tests', () => {
       cy.mockPasswordResetRequest(users.primary.email, true)
 
       // Use existing page objects with new commands
-      forgotPasswordPage
-        .visit()
-        .waitForLoad()
-        .requestPasswordReset(users.primary.email)
+      forgotPasswordPage.visit().waitForLoad().requestPasswordReset(users.primary.email)
 
       cy.wait('@passwordResetRequest')
       forgotPasswordPage.verifyRequestSuccess()
@@ -70,10 +67,7 @@ describe('Viernes - Password Reset Integration Tests', () => {
       for (let i = 0; i < 3; i++) {
         cy.mockPasswordResetRequest(`test${i}@example.com`, true)
 
-        forgotPasswordPage
-          .visit()
-          .waitForLoad()
-          .requestPasswordReset(`test${i}@example.com`)
+        forgotPasswordPage.visit().waitForLoad().requestPasswordReset(`test${i}@example.com`)
 
         cy.wait('@passwordResetRequest')
         cy.wait(100) // Rate limiting prevention
@@ -84,10 +78,7 @@ describe('Viernes - Password Reset Integration Tests', () => {
       // Test that password reset uses same toast system as login
       cy.mockPasswordResetRequest(users.primary.email, false)
 
-      forgotPasswordPage
-        .visit()
-        .waitForLoad()
-        .requestPasswordReset(users.primary.email)
+      forgotPasswordPage.visit().waitForLoad().requestPasswordReset(users.primary.email)
 
       cy.wait('@passwordResetRequest')
 
@@ -138,10 +129,7 @@ describe('Viernes - Password Reset Integration Tests', () => {
         forceNetworkError: true,
       }).as('networkError')
 
-      forgotPasswordPage
-        .visit()
-        .waitForLoad()
-        .requestPasswordReset(users.primary.email)
+      forgotPasswordPage.visit().waitForLoad().requestPasswordReset(users.primary.email)
 
       cy.wait('@networkError')
 
@@ -158,10 +146,7 @@ describe('Viernes - Password Reset Integration Tests', () => {
     it('should maintain form state during errors like login tests', () => {
       cy.mockPasswordResetRequest(users.primary.email, false)
 
-      forgotPasswordPage
-        .visit()
-        .waitForLoad()
-        .requestPasswordReset(users.primary.email)
+      forgotPasswordPage.visit().waitForLoad().requestPasswordReset(users.primary.email)
 
       cy.wait('@passwordResetRequest')
       forgotPasswordPage.verifyRequestFailure()
@@ -178,10 +163,7 @@ describe('Viernes - Password Reset Integration Tests', () => {
     it('should work reliably in headless mode like login tests', () => {
       // Test headless mode compatibility
       if (!Cypress.browser.isHeaded) {
-        forgotPasswordPage
-          .visit()
-          .waitForLoad()
-          .verifyFormElements()
+        forgotPasswordPage.visit().waitForLoad().verifyFormElements()
 
         // Should work without focus-dependent behavior
         forgotPasswordPage.verifyFormInteractivity()

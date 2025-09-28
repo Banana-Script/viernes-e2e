@@ -65,7 +65,7 @@ export class ResetPasswordPage {
       const params = new URLSearchParams({
         mode: 'resetPassword',
         oobCode: oobCode,
-        ...(apiKey && { apiKey })
+        ...(apiKey && { apiKey }),
       })
       url = `${url}?${params.toString()}`
     }
@@ -396,7 +396,11 @@ export class ResetPasswordPage {
   /**
    * Verify password confirmation matching
    */
-  verifyPasswordConfirmationMatching(newPassword: string, confirmPassword: string, shouldMatch: boolean): ResetPasswordPage {
+  verifyPasswordConfirmationMatching(
+    newPassword: string,
+    confirmPassword: string,
+    shouldMatch: boolean,
+  ): ResetPasswordPage {
     this.enterNewPassword(newPassword)
     this.enterConfirmPassword(confirmPassword)
     this.submit()
