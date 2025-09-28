@@ -98,5 +98,78 @@ declare namespace Cypress {
      * Verify form elements are interactive (headed/headless compatible)
      */
     verifyFormInteractivity(): Chainable<void>
+
+    // Password Reset Commands
+
+    /**
+     * Request password reset email
+     * @param email - Email address to send reset link to
+     * @param options - Additional options for the request
+     */
+    requestPasswordReset(
+      email: string,
+      options?: {
+        shouldSucceed?: boolean
+        skipToast?: boolean
+      },
+    ): Chainable<void>
+
+    /**
+     * Reset password using oobCode
+     * @param oobCode - The reset code from Firebase
+     * @param newPassword - The new password to set
+     * @param options - Additional options for the reset
+     */
+    resetPassword(
+      oobCode: string,
+      newPassword: string,
+      options?: {
+        confirmPassword?: string
+        shouldSucceed?: boolean
+        skipToast?: boolean
+      },
+    ): Chainable<void>
+
+    /**
+     * Generate a realistic oobCode for testing
+     * This simulates what Firebase would generate
+     */
+    generateResetCode(): Chainable<string>
+
+    /**
+     * Generate a complete password reset URL with oobCode
+     * @param email - Email address (for context)
+     * @param apiKey - Firebase API key (optional)
+     */
+    generateResetUrl(email?: string, apiKey?: string): Chainable<string>
+
+    /**
+     * Mock Firebase password reset email request
+     * @param email - Email to mock request for
+     * @param shouldSucceed - Whether the request should succeed
+     */
+    mockPasswordResetRequest(email: string, shouldSucceed?: boolean): Chainable<void>
+
+    /**
+     * Mock Firebase password reset confirmation
+     * @param oobCode - The reset code to mock
+     * @param shouldSucceed - Whether the reset should succeed
+     */
+    mockPasswordResetConfirmation(oobCode: string, shouldSucceed?: boolean): Chainable<void>
+
+    /**
+     * Complete password reset flow from start to finish
+     * @param email - Email to reset password for
+     * @param newPassword - New password to set
+     * @param options - Flow options
+     */
+    completePasswordResetFlow(
+      email: string,
+      newPassword: string,
+      options?: {
+        useValidCode?: boolean
+        mockRequests?: boolean
+      },
+    ): Chainable<void>
   }
 }

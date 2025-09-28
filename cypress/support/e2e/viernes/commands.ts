@@ -257,6 +257,267 @@ const commands = {
       win.sessionStorage.clear()
     })
   },
+
+  // Password Reset Commands
+
+  /**
+   * Request password reset email
+   * @param email - Email address to send reset link to
+   * @param options - Additional options for the request
+   */
+  requestPasswordReset: (
+    email: string,
+    options: {
+      shouldSucceed?: boolean
+      skipToast?: boolean
+    } = {},
+  ) => {
+    const { shouldSucceed = true, skipToast = false } = options
+
+    cy.visit(getUrl('forgotPassword'))
+
+    // Wait for form to be visible
+    cy.get('[data-testid="forgot-password-form"]').should('be.visible')
+
+    // Fill in email with delay to prevent rate limiting
+    cy.get('[data-testid="forgot-password-email-input"]').clear().type(email, { delay: 10 })
+
+    cy.wait(FIREBASE_AUTH_DELAY)
+
+    // Submit the form
+    cy.get('[data-testid="forgot-password-submit-button"]').click()
+
+    // Wait for request to complete
+    cy.wait(FIREBASE_AUTH_DELAY * 2)
+
+    if (!skipToast) {
+      if (shouldSucceed) {
+        cy.verifySuccessToast()
+      } else {
+        cy.verifyErrorToast()
+      }
+    }
+  },
+
+  /**
+   * Reset password using oobCode
+   * @param oobCode - The reset code from Firebase
+   * @param newPassword - The new password to set
+   * @param options - Additional options for the reset
+   */
+  resetPassword: (
+    oobCode: string,
+    newPassword: string,
+    options: {
+      confirmPassword?: string
+      shouldSucceed?: boolean
+      skipToast?: boolean
+    } = {},
+  ) => {
+    const { confirmPassword = newPassword, shouldSucceed = true, skipToast = false } = options
+
+    // Visit reset password page with oobCode
+    const resetUrl = `${getUrl('resetPassword')}?mode=resetPassword&oobCode=${oobCode}`
+    cy.visit(resetUrl)
+
+    // Wait for form to be visible
+    cy.get('[data-testid="reset-password-form"]').should('be.visible')
+
+    // Fill in passwords with delays to prevent rate limiting
+    cy.get('[data-testid="reset-password-new-password-input"]').clear().type(newPassword, { delay: 10 })
+
+    cy.wait(FIREBASE_AUTH_DELAY)
+
+    cy.get('[data-testid="reset-password-confirm-password-input"]').clear().type(confirmPassword, { delay: 10 })
+
+    cy.wait(FIREBASE_AUTH_DELAY)
+
+    // Submit the form
+    cy.get('[data-testid="reset-password-submit-button"]').click()
+
+    // Wait for request to complete
+    cy.wait(FIREBASE_AUTH_DELAY * 2)
+
+    if (!skipToast) {
+      if (shouldSucceed) {
+        cy.verifySuccessToast()
+      } else {
+        cy.verifyErrorToast()
+      }
+    }
+  },
+
+  /**
+   * Generate a realistic oobCode for testing
+   * This simulates what Firebase would generate
+   */
+  generateResetCode: (): Cypress.Chainable<string> => {
+    // Generate a realistic oobCode similar to Firebase format
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+    let result = ''
+    for (let i = 0; i < 120; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    return cy.wrap(result)
+  },
+
+  /**
+   * Generate a complete password reset URL with oobCode
+   * @param email - Email address (for context)
+   * @param apiKey - Firebase API key (optional)
+   */
+  generateResetUrl: (email?: string, apiKey?: string): Cypress.Chainable<string> => {
+    return cy.generateResetCode().then((oobCode) => {
+      const baseUrl = getUrl('resetPassword')
+      const params = new URLSearchParams({
+        mode: 'resetPassword',
+        oobCode: oobCode,
+        ...(apiKey && { apiKey }),
+      })
+      return `${baseUrl}?${params.toString()}`
+    })
+  },
+
+  /**
+   * Mock Firebase password reset email request
+   * @param email - Email to mock request for
+   * @param shouldSucceed - Whether the request should succeed
+   */
+  mockPasswordResetRequest: (email: string, shouldSucceed: boolean = true) => {
+    const mockResponse = shouldSucceed
+      ? {
+          statusCode: 200,
+          body: {
+            kind: 'identitytoolkit#GetOobConfirmationCodeResponse',
+            email: email,
+          },
+        }
+      : {
+          statusCode: 400,
+          body: {
+            error: {
+              code: 400,
+              message: 'EMAIL_NOT_FOUND',
+              errors: [
+                {
+                  message: 'EMAIL_NOT_FOUND',
+                  domain: 'global',
+                  reason: 'invalid',
+                },
+              ],
+            },
+          },
+        }
+
+    cy.intercept('POST', '**/identitytoolkit.googleapis.com/v1/accounts:sendOobCode*', mockResponse).as(
+      'passwordResetRequest',
+    )
+  },
+
+  /**
+   * Mock Firebase password reset confirmation
+   * @param oobCode - The reset code to mock
+   * @param shouldSucceed - Whether the reset should succeed
+   */
+  mockPasswordResetConfirmation: (oobCode: string, shouldSucceed: boolean = true) => {
+    const mockResponse = shouldSucceed
+      ? {
+          statusCode: 200,
+          body: {
+            kind: 'identitytoolkit#ResetPasswordResponse',
+            email: 'test@example.com',
+            requestType: 'PASSWORD_RESET',
+          },
+        }
+      : {
+          statusCode: 400,
+          body: {
+            error: {
+              code: 400,
+              message: 'INVALID_OOB_CODE',
+              errors: [
+                {
+                  message: 'INVALID_OOB_CODE',
+                  domain: 'global',
+                  reason: 'invalid',
+                },
+              ],
+            },
+          },
+        }
+
+    cy.intercept('POST', '**/identitytoolkit.googleapis.com/v1/accounts:resetPassword*', mockResponse).as(
+      'passwordResetConfirmation',
+    )
+  },
+
+  /**
+   * Complete password reset flow from start to finish
+   * @param email - Email to reset password for
+   * @param newPassword - New password to set
+   * @param options - Flow options
+   */
+  completePasswordResetFlow: (
+    email: string,
+    newPassword: string,
+    options: {
+      useValidCode?: boolean
+      mockRequests?: boolean
+    } = {},
+  ) => {
+    const { useValidCode = true, mockRequests = true } = options
+
+    if (mockRequests) {
+      // Mock the email request
+      cy.mockPasswordResetRequest(email, true)
+    }
+
+    // Step 1: Request password reset
+    cy.requestPasswordReset(email, { skipToast: mockRequests })
+
+    if (mockRequests) {
+      cy.wait('@passwordResetRequest')
+    }
+
+    // Step 2: Generate reset URL (simulating email link)
+    cy.generateResetUrl(email).then((resetUrl) => {
+      if (mockRequests) {
+        // Extract oobCode from URL for mocking
+        const urlParams = new URLSearchParams(resetUrl.split('?')[1])
+        const oobCode = urlParams.get('oobCode')
+
+        if (oobCode) {
+          cy.mockPasswordResetConfirmation(oobCode, useValidCode)
+        }
+      }
+
+      // Step 3: Visit reset URL and complete password reset
+      cy.visit(resetUrl)
+      cy.get('[data-testid="reset-password-form"]').should('be.visible')
+
+      cy.get('[data-testid="reset-password-new-password-input"]').clear().type(newPassword, { delay: 10 })
+      cy.wait(FIREBASE_AUTH_DELAY)
+
+      cy.get('[data-testid="reset-password-confirm-password-input"]').clear().type(newPassword, { delay: 10 })
+      cy.wait(FIREBASE_AUTH_DELAY)
+
+      cy.get('[data-testid="reset-password-submit-button"]').click()
+
+      if (mockRequests) {
+        cy.wait('@passwordResetConfirmation')
+
+        if (useValidCode) {
+          cy.verifySuccessToast()
+          // Should redirect to login or dashboard
+          cy.url().should('satisfy', (url: string) => {
+            return url.includes('/login') || url.includes('/dashboard') || url.match(/\/$/)
+          })
+        } else {
+          cy.verifyErrorToast()
+        }
+      }
+    })
+  },
 }
 
 export default commands
