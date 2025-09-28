@@ -1,7 +1,14 @@
 {
-  "commonPaths": {},
+  "commonPaths": {
+    "login": "/login",
+    "dashboard": "/",
+    "home": "/"
+  },
   "envs": {
     "development": {
+      "baseUrl": "http://localhost:5173"
+    },
+    "staging": {
       "baseUrl": "https://viernes-dev.bananascript.io"
     },
     "production": {
