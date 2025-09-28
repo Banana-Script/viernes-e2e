@@ -16,7 +16,9 @@
     "prettify": "npx prettier --write .",
     "prepare": "husky install",
     "viernes-development": "cypress run -e product=viernes,env=development",
+    "viernes-local": "cypress run -e product=viernes,env=local",
     "viernes-production": "cypress run -e product=viernes,env=production",
+    "viernes-local-open": "cypress open --e2e -e product=viernes,env=local",
     "viernes-development-open": "cypress open --e2e -e product=viernes,env=development",
     "viernes-production-open": "cypress open --e2e -e product=viernes,env=production"
   },

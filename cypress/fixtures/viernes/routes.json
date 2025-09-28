@@ -5,10 +5,10 @@
     "home": "/"
   },
   "envs": {
-    "development": {
+    "local": {
       "baseUrl": "http://localhost:5173"
     },
-    "staging": {
+    "development": {
       "baseUrl": "https://viernes-dev.bananascript.io"
     },
     "production": {
