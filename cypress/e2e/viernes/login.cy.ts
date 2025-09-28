@@ -307,7 +307,7 @@ describe('Viernes - Login Flow', () => {
 
       // FIX: Intercept Firebase auth requests specifically
       cy.intercept('POST', '**/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword*', {
-        forceNetworkError: true
+        forceNetworkError: true,
       }).as('networkError')
 
       loginPage.enterEmail(users.primary.email).enterPassword(users.primary.password).submit()
