@@ -1,6 +1,8 @@
 {
   "commonPaths": {
     "login": "/login",
+    "forgotPassword": "/auth/boxed-password-reset",
+    "resetPassword": "/resetPassword",
     "dashboard": "/",
     "home": "/"
   },

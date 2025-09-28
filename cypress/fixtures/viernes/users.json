@@ -1,4 +1,16 @@
 {
+  "local": {
+    "primary": {
+      "name": "jmtester1203+pash@gmail.com",
+      "email": "jmtester1203+pash@gmail.com",
+      "password": "Jopima97*"
+    },
+    "secondary": {
+      "name": "jmtester1203+atmos@gmail.com",
+      "email": "jmtester1203+atmos@gmail.com",
+      "password": "Jopima97*"
+    }
+  },
   "development": {
     "primary": {
       "name": "jmtester1203+pash@gmail.com",
