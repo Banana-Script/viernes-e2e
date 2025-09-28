@@ -1,7 +1,6 @@
 export const product = Cypress.env('PRODUCT')
 export const env = Cypress.env('ENV')
 export const type = Cypress.env('TYPE')
-export const baseUrl = Cypress.config('e2e').baseUrl
 
 const getProductPath = () => {
   return `${product}`
@@ -14,6 +13,10 @@ export const getFixture = (fileName) => {
     console.warn('users.local.json not existing')
   }
 }
+
+// Get baseUrl from routes configuration instead of Cypress config
+const routesConfig = getFixture('routes')
+export const baseUrl = routesConfig.envs[env]?.baseUrl || Cypress.config('e2e').baseUrl
 
 export const routes = getFixture('routes').envs[env]
 

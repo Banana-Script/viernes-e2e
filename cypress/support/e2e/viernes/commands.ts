@@ -139,22 +139,25 @@ const commands = {
 
       if (indexedDB && indexedDB.databases) {
         // Modern browsers with databases() method
-        indexedDB.databases().then((databases) => {
-          databases.forEach((db) => {
-            if (db.name && db.name.startsWith('firebase')) {
-              const deleteReq = indexedDB.deleteDatabase(db.name)
-              deleteReq.onsuccess = () => {
-                console.log(`Deleted Firebase IndexedDB: ${db.name}`)
+        indexedDB
+          .databases()
+          .then((databases) => {
+            databases.forEach((db) => {
+              if (db.name && db.name.startsWith('firebase')) {
+                const deleteReq = indexedDB.deleteDatabase(db.name)
+                deleteReq.onsuccess = () => {
+                  console.log(`Deleted Firebase IndexedDB: ${db.name}`)
+                }
+                deleteReq.onerror = () => {
+                  console.log(`Failed to delete Firebase IndexedDB: ${db.name}`)
+                }
               }
-              deleteReq.onerror = () => {
-                console.log(`Failed to delete Firebase IndexedDB: ${db.name}`)
-              }
-            }
+            })
           })
-        }).catch(() => {
-          // Fallback for browsers that don't support databases()
-          cy.clearFirebaseIndexedDBFallback()
-        })
+          .catch(() => {
+            // Fallback for browsers that don't support databases()
+            cy.clearFirebaseIndexedDBFallback()
+          })
       } else {
         // Fallback for older browsers
         cy.clearFirebaseIndexedDBFallback()
@@ -177,7 +180,7 @@ const commands = {
         'firebase-installations-database',
         'firebase-analytics-database',
         'firebase-remote-config-database',
-        'firebase-performance-database'
+        'firebase-performance-database',
       ]
 
       firebaseDBNames.forEach((dbName) => {
